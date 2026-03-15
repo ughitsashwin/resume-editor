@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import PDFDocument from "pdfkit";
+import { jsPDF } from "jspdf";
 
 export async function POST(req: Request) {
   try {
@@ -48,30 +48,45 @@ CRITICAL INSTRUCTION: Output ONLY the raw letter text. DO NOT use markdown, bold
     let coverLetterText = data.candidates?.[0]?.content?.parts?.[0]?.text || "";
     coverLetterText = coverLetterText.replace(/\*/g, ''); // strip markdown asterisks
 
-    // Build PDF directly in memory buffer
-    const pdfBuffer = await new Promise<Buffer>((resolve, reject) => {
-      const doc = new PDFDocument({ margin: 60 });
-      const buffers: Buffer[] = [];
-      doc.on("data", buffers.push.bind(buffers));
-      doc.on("end", () => resolve(Buffer.concat(buffers)));
-      doc.on("error", reject);
-
-      doc.font("Times-Roman").fontSize(11);
-
-      // Simple paragraph separation handler
-      const paragraphs = coverLetterText.split(/(?:\r?\n){2,}/).map((p: string) => p.trim()).filter(Boolean);
-      
-      paragraphs.forEach((p: string, index: number) => {
-         // Some lines like dates or signatures might not need to be justified, 
-         // but instructions said "the whole text is 'Justify text' aligned"
-         doc.text(p.replace(/\r?\n/g, ' '), { align: "justify" });
-         if (index < paragraphs.length - 1) {
-            doc.moveDown(1.5);
-         }
-      });
-
-      doc.end();
+    // Use jsPDF which natively supports Vercel Serverless (doesn't require FS font files)
+    const doc = new jsPDF({
+      orientation: "portrait",
+      unit: "pt",
+      format: "letter"
     });
+
+    doc.setFont("times", "normal");
+    doc.setFontSize(11);
+
+    const margin = 72; // 1 inch margins
+    const pageWidth = doc.internal.pageSize.getWidth();
+    const maxWidth = pageWidth - (margin * 2);
+
+    let yPosition = margin;
+
+    // Split text into lines taking width into account
+    // Then draw each paragraph with built in text alignment
+    const paragraphs = coverLetterText.split(/(?:\r?\n){2,}/).map(p => p.trim()).filter(Boolean);
+
+    paragraphs.forEach((p) => {
+      // clean lines
+      const cleanText = p.replace(/\r?\n/g, ' ');
+      // get split text array for wrapped width
+      const textLines = doc.splitTextToSize(cleanText, maxWidth);
+      
+      const textHeight = textLines.length * 14; // Approx line height
+      if (yPosition + textHeight > doc.internal.pageSize.getHeight() - margin) {
+        doc.addPage();
+        yPosition = margin;
+      }
+      
+      doc.text(textLines, margin, yPosition, { align: "justify", maxWidth: maxWidth });
+      yPosition += textHeight + 14; // spacing between paragraphs
+    });
+
+    // Obtain raw arraybuffer directly from memory
+    const arrayBuffer = doc.output("arraybuffer");
+    const pdfBuffer = Buffer.from(arrayBuffer);
 
     return new NextResponse(pdfBuffer as unknown as BodyInit, {
       status: 200,
@@ -82,6 +97,7 @@ CRITICAL INSTRUCTION: Output ONLY the raw letter text. DO NOT use markdown, bold
     });
 
   } catch (error: any) {
+    console.error("PDF Generation Error (jsPDF):", error);
     return NextResponse.json({ error: error.message || "Internal Server Error" }, { status: 500 });
   }
 }
