@@ -14,8 +14,7 @@ import {
   Trophy,
   PenTool,
   Download,
-  Sparkles,
-  User
+  Sparkles
 } from "lucide-react";
 import ReactMarkdown from "react-markdown";
 
@@ -24,7 +23,6 @@ export default function Home() {
   const [jobDesc, setJobDesc] = useState("");
   const [role, setRole] = useState("");
   const [company, setCompany] = useState("");
-  const [applicantName, setApplicantName] = useState("");
   const [uploadedFile, setUploadedFile] = useState<File | null>(null);
   const [templateText, setTemplateText] = useState(""); // Captures the exact formatting scheme of the uploaded DOCX securely
   
@@ -44,8 +42,6 @@ export default function Home() {
        return;
     }
     setUploadedFile(file);
-    const baseName = file.name.replace(/\.[^/.]+$/, "");
-    if (!applicantName) setApplicantName(baseName);
 
     if (
       file.type === "application/pdf" || 
@@ -101,7 +97,8 @@ export default function Home() {
       const url = window.URL.createObjectURL(blob);
       const link = document.createElement("a");
       link.href = url;
-      const safeName = (applicantName || 'Optimized_Resume').replace(/[^a-zA-Z0-9.\-_ ]/g, "").trim();
+      const firstLineName = resumeText.split("\n").map(l => l.trim()).filter(Boolean)[0] || "Optimized_Resume";
+      const safeName = firstLineName.replace(/[^a-zA-Z0-9.\-_ ]/g, "").trim();
       const safeRole = role.replace(/[^a-zA-Z0-9.\-_ ]/g, "").trim();
       link.download = `${safeName} - ${safeRole}.docx`;
       document.body.appendChild(link);
@@ -149,7 +146,8 @@ export default function Home() {
       const url = window.URL.createObjectURL(blob);
       const link = document.createElement("a");
       link.href = url;
-      const safeName = (applicantName || 'Optimized').replace(/[^a-zA-Z0-9.\-_ ]/g, "").trim();
+      const firstLineName = resumeText.split("\n").map(l => l.trim()).filter(Boolean)[0] || "Optimized_Resume";
+      const safeName = firstLineName.replace(/[^a-zA-Z0-9.\-_ ]/g, "").trim();
       const safeRole = role.replace(/[^a-zA-Z0-9.\-_ ]/g, "").trim();
       link.download = `${safeName} - ${safeRole}.docx`;
       document.body.appendChild(link);
@@ -240,19 +238,6 @@ export default function Home() {
               Target Role
             </h2>
             <div className="space-y-4">
-              <div>
-                <label className="text-xs font-medium text-slate-400 uppercase tracking-wider mb-2 block">Your Name</label>
-                <div className="relative">
-                  <User className="absolute left-3 top-3 w-5 h-5 text-slate-500" />
-                  <input 
-                    type="text"
-                    placeholder="e.g. John Doe"
-                    value={applicantName}
-                    onChange={(e) => setApplicantName(e.target.value)}
-                    className="w-full bg-slate-900/50 border border-white/10 rounded-xl py-2.5 pl-10 pr-4 text-slate-200 placeholder:text-slate-600 focus:outline-none focus:border-blue-500/50 transition-all"
-                  />
-                </div>
-              </div>
               <div>
                 <label className="text-xs font-medium text-slate-400 uppercase tracking-wider mb-2 block">Role Name</label>
                 <div className="relative">
