@@ -15,7 +15,8 @@ import {
   PenTool,
   Download,
   Sparkles,
-  TrendingUp
+  TrendingUp,
+  FileBadge
 } from "lucide-react";
 import ReactMarkdown from "react-markdown";
 
@@ -37,6 +38,7 @@ export default function Home() {
 
   const [fileExtracting, setFileExtracting] = useState(false);
   const [downloadingDoc, setDownloadingDoc] = useState(false);
+  const [downloadingCover, setDownloadingCover] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -163,6 +165,53 @@ export default function Home() {
       setError(err.message);
     } finally {
       setDownloadingDoc(false);
+    }
+  };
+
+  const downloadCoverLetter = async () => {
+    if (!rewrittenResume || !jobDesc) {
+      setError("Please ensure that your resume is optimized and the Job Description is filled.");
+      return;
+    }
+    
+    setDownloadingCover(true);
+    setError("");
+
+    try {
+      const firstLineName = resumeText.split("\n").map(l => l.trim()).filter(Boolean)[0] || "Applicant";
+      const applicantName = firstLineName.replace(/[^a-zA-Z0-9.\-_ ]/g, "").trim();
+
+      const res = await fetch("/api/generate-cover-letter", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          rewrittenResume,
+          jobDescription: jobDesc,
+          role,
+          company,
+          applicantName
+        })
+      });
+
+      if (!res.ok) {
+         const errorData = await res.json().catch(() => ({}));
+         throw new Error(errorData.error || "Failed to optimally generate customized Cover Letter PDF.");
+      }
+      
+      const blob = await res.blob();
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = url;
+      const safeRole = role.replace(/[^a-zA-Z0-9.\-_ ]/g, "").trim() || "Role";
+      link.download = `Cover_Letter_${applicantName}_${safeRole}.pdf`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      window.URL.revokeObjectURL(url);
+    } catch (err: any) {
+      setError(err.message);
+    } finally {
+      setDownloadingCover(false);
     }
   };
 
@@ -525,6 +574,14 @@ export default function Home() {
                     >
                       {downloadingDoc ? <Loader2 className="w-4 h-4 animate-spin" /> : <Download className="w-4 h-4" />}
                       Basic Format (.docx)
+                    </button>
+                    <button 
+                      onClick={downloadCoverLetter}
+                      disabled={downloadingCover}
+                      className="px-4 py-2 bg-blue-600/20 hover:bg-blue-600/40 rounded-lg text-sm text-blue-300 transition-colors border border-blue-500/30 flex items-center gap-2 font-medium disabled:opacity-50"
+                    >
+                      {downloadingCover ? <Loader2 className="w-4 h-4 animate-spin" /> : <FileBadge className="w-4 h-4" />}
+                      Cover Letter (.pdf)
                     </button>
                     {uploadedFile?.name.endsWith(".docx") && (
                       <button 
