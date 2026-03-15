@@ -68,9 +68,6 @@ Job Description:
 ${jobDescription}`;
 
     let postRewriteScore = "Score not available";
-    
-    // Add a tiny artificial delay before the final scoring request to prevent free tier burst caps
-    await new Promise(resolve => setTimeout(resolve, 1500));
 
     const res3 = await fetch(url, {
       method: "POST",
