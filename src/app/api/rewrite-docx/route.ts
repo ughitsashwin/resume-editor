@@ -66,7 +66,10 @@ export async function POST(req: Request) {
              return NextResponse.json({ error: "No readable body paragraphs extracted from the document." }, { status: 400 });
         }
 
-        const apiKey = "AIzaSyCqnmP1ANQcLT6rGg0xRKbj0zqMgFEDGtQ";
+        const apiKey = process.env.GEMINI_API_KEY || "";
+        if (!apiKey) {
+           return NextResponse.json({ error: "API key not configured." }, { status: 500 });
+        }
         const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`;
 
         const prompt = `Act as an expert Resume Writer and Career Coach. 

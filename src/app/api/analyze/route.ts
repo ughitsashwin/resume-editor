@@ -3,7 +3,10 @@ import { NextResponse } from "next/server";
 export async function POST(req: Request) {
   try {
     const { resumeText, jobDescription, role, company, templateText } = await req.json();
-    const apiKey = "AIzaSyCqnmP1ANQcLT6rGg0xRKbj0zqMgFEDGtQ";
+    const apiKey = process.env.GEMINI_API_KEY || "";
+    if (!apiKey) {
+      return NextResponse.json({ error: "API key not configured." }, { status: 500 });
+    }
     
     if (!resumeText || !jobDescription) {
       return NextResponse.json({ error: "Resume and Job Description are required" }, { status: 400 });
