@@ -23,6 +23,7 @@ export async function POST(req: Request) {
         const jobDesc = formData.get("jobDescription") as string;
         const role = formData.get("role") as string;
         const company = formData.get("company") as string;
+        const userSuggestions = formData.get("userSuggestions") as string;
 
         if (!file || !jobDesc) {
             return NextResponse.json({ error: "File and Job Description are required" }, { status: 400 });
@@ -88,7 +89,7 @@ CRITICAL INSTRUCTION - PAY STRICT ATTENTION:
 7. NEVER add more indices or paragraphs to the array than exactly ${paragraphs.length}.
 8. OUTPUT NOTHING ELSE. Do NOT wrap your output in markdown \`\`\`json blocks. Return raw JSON text parsing compliant output starting with '[' and ending with ']'.
 
---- Job Description ---
+${userSuggestions ? `--- USER CUSTOM SUGGESTIONS & INSTRUCTIONS ---\n${userSuggestions}\n\n` : ''}--- Job Description ---
 ${jobDesc}
 
 --- Resume Paragraphs Array ---

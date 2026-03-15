@@ -32,6 +32,8 @@ export default function Home() {
   const [analysis, setAnalysis] = useState("");
   const [rewrittenResume, setRewrittenResume] = useState("");
   const [postRewriteScore, setPostRewriteScore] = useState("");
+  const [userSuggestions, setUserSuggestions] = useState("");
+  const [optimizing, setOptimizing] = useState(false);
 
   const [fileExtracting, setFileExtracting] = useState(false);
   const [downloadingDoc, setDownloadingDoc] = useState(false);
@@ -133,6 +135,7 @@ export default function Home() {
       formData.append("jobDescription", jobDesc);
       formData.append("role", role);
       formData.append("company", company);
+      formData.append("userSuggestions", userSuggestions);
 
       const res = await fetch("/api/rewrite-docx", {
         method: "POST",
@@ -178,6 +181,7 @@ export default function Home() {
     setAnalysis("");
     setRewrittenResume("");
     setPostRewriteScore("");
+    setUserSuggestions("");
 
     try {
       const res = await fetch("/api/analyze", {
@@ -196,12 +200,41 @@ export default function Home() {
       if (!res.ok) throw new Error(data.error || "Optimization failed");
 
       setAnalysis(data.analysis);
+    } catch (err: any) {
+      setError(err.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const continueOptimization = async () => {
+    setOptimizing(true);
+    setError("");
+
+    try {
+      const res = await fetch("/api/optimize", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          resumeText,
+          jobDescription: jobDesc,
+          role,
+          company,
+          templateText,
+          analysisResult: analysis,
+          userSuggestions
+        })
+      });
+
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || "Optimization failed");
+
       setRewrittenResume(data.rewrittenResume);
       setPostRewriteScore(data.postRewriteScore);
     } catch (err: any) {
       setError(err.message);
     } finally {
-      setLoading(false);
+      setOptimizing(false);
     }
   };
 
@@ -415,6 +448,41 @@ export default function Home() {
                   </div>
                 </div>
 
+                {!rewrittenResume && (
+                  <div className="glass rounded-2xl p-8 relative overflow-hidden mt-6 border-dashed border-white/10">
+                    <h2 className="text-xl font-bold text-white mb-4 flex items-center gap-2">
+                       <Settings className="w-5 h-5 text-blue-400" />
+                       Custom Rewrite Suggestions (Optional)
+                    </h2>
+                    <textarea 
+                      value={userSuggestions}
+                      onChange={(e) => setUserSuggestions(e.target.value)}
+                      placeholder="e.g. Focus more on my leadership experience, make the tone more aggressive, add a focus on Next.js..."
+                      className="w-full h-24 bg-slate-900/50 border border-white/10 rounded-xl p-4 text-sm text-slate-300 placeholder:text-slate-600 focus:outline-none focus:border-blue-500/50 transition-all resize-none mb-6"
+                    />
+                    <motion.button 
+                      whileHover={{ scale: 1.02 }}
+                      whileTap={{ scale: 0.98 }}
+                      onClick={continueOptimization}
+                      disabled={optimizing}
+                      className="w-full bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white font-semibold py-4 rounded-xl shadow-lg shadow-emerald-500/25 transition-all flex items-center justify-center gap-2 disabled:opacity-50"
+                    >
+                      {optimizing ? (
+                        <>
+                          <Loader2 className="w-5 h-5 animate-spin" />
+                          Applying Instructions & Architecting...
+                        </>
+                      ) : (
+                        <>
+                          Continue Optimization
+                          <ChevronRight className="w-5 h-5" />
+                        </>
+                      )}
+                    </motion.button>
+                  </div>
+                )}
+
+                {rewrittenResume && (
                 <div className="glass rounded-2xl p-8 relative overflow-hidden">
                   <div className="absolute top-0 right-0 w-64 h-64 bg-violet-500/5 rounded-full blur-[80px]" />
                   <h2 className="text-xl font-bold text-white mb-6 flex items-center gap-3">
@@ -479,6 +547,7 @@ export default function Home() {
                     )}
                   </div>
                 </div>
+                )}
               </motion.div>
             )}
           </AnimatePresence>
