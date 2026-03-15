@@ -66,9 +66,9 @@ CRITICAL INSTRUCTION: Output ONLY the raw letter text. DO NOT use markdown, bold
 
     // Split text into lines taking width into account
     // Then draw each paragraph with built in text alignment
-    const paragraphs = coverLetterText.split(/(?:\r?\n){2,}/).map(p => p.trim()).filter(Boolean);
+    const paragraphs = coverLetterText.split(/(?:\r?\n){2,}/).map((p: string) => p.trim()).filter(Boolean);
 
-    paragraphs.forEach((p) => {
+    paragraphs.forEach((p: string) => {
       // clean lines
       const cleanText = p.replace(/\r?\n/g, ' ');
       // get split text array for wrapped width
