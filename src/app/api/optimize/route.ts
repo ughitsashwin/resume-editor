@@ -67,6 +67,11 @@ ${rewrittenResume}
 Job Description:
 ${jobDescription}`;
 
+    let postRewriteScore = "Score not available";
+    
+    // Add a tiny artificial delay before the final scoring request to prevent free tier burst caps
+    await new Promise(resolve => setTimeout(resolve, 1500));
+
     const res3 = await fetch(url, {
       method: "POST",
       headers,
@@ -79,12 +84,12 @@ ${jobDescription}`;
     });
 
     if (!res3.ok) {
-        const err = await res3.text();
-        return NextResponse.json({ error: `Gemini API Error (Prompt 3): ${err}` }, { status: res3.status });
+        console.warn("Prompt 3 AI Scoring failed (likely rate limit). Skipping grade purely to salvage optimized resume document.");
+        postRewriteScore = "Final AI Scoring skipped due to Free Tier Rate Limits (Resume was optimized successfully).";
+    } else {
+        const data3 = await res3.json();
+        postRewriteScore = data3.candidates?.[0]?.content?.parts?.[0]?.text || "Score not available";
     }
-
-    const data3 = await res3.json();
-    const postRewriteScore = data3.candidates?.[0]?.content?.parts?.[0]?.text || "Score not available";
 
     return NextResponse.json({
       rewrittenResume: rewrittenResume,
