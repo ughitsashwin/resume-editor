@@ -162,7 +162,11 @@ export default function Home() {
       document.body.removeChild(link);
       window.URL.revokeObjectURL(url);
     } catch (err: any) {
-      setError(err.message);
+      if (err.message?.includes("429") || err.message?.includes("Quota") || err.message?.includes("RESOURCE_EXHAUSTED")) {
+        setError("Google Gemini Free Tier Limit Reached: Too many requests! Please wait 30 seconds before generating.");
+      } else {
+        setError(err.message);
+      }
     } finally {
       setDownloadingDoc(false);
     }
@@ -209,7 +213,11 @@ export default function Home() {
       document.body.removeChild(link);
       window.URL.revokeObjectURL(url);
     } catch (err: any) {
-      setError(err.message);
+      if (err.message?.includes("429") || err.message?.includes("Quota") || err.message?.includes("RESOURCE_EXHAUSTED")) {
+        setError("Google Gemini Free Tier Limit Reached: Too many AI requests in one minute! Please wait 30 seconds before clicking again.");
+      } else {
+        setError(err.message);
+      }
     } finally {
       setDownloadingCover(false);
     }
@@ -250,7 +258,11 @@ export default function Home() {
 
       setAnalysis(data.analysis);
     } catch (err: any) {
-      setError(err.message);
+      if (err.message?.includes("429") || err.message?.includes("Quota") || err.message?.includes("RESOURCE_EXHAUSTED")) {
+        setError("Google Gemini Free Tier Limit Reached: Too many AI requests in one minute! Please wait 30 seconds before clicking again.");
+      } else {
+        setError(err.message);
+      }
     } finally {
       setLoading(false);
     }
@@ -281,7 +293,11 @@ export default function Home() {
       setRewrittenResume(data.rewrittenResume);
       setPostRewriteScore(data.postRewriteScore);
     } catch (err: any) {
-      setError(err.message);
+      if (err.message?.includes("429") || err.message?.includes("Quota") || err.message?.includes("RESOURCE_EXHAUSTED")) {
+        setError("Google API Rate Limit Hit: You are generating too fast on the Free Tier! Please wait 30 seconds before hit continue.");
+      } else {
+        setError(err.message);
+      }
     } finally {
       setOptimizing(false);
     }
