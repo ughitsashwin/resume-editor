@@ -83,8 +83,10 @@ CRITICAL INSTRUCTION - PAY STRICT ATTENTION:
 2. Every rewritten string MUST mathematically correspond sequentially 1-to-1 to the exact original array index from my input array.
 3. If an index contains my Name, Contact Email, Location, or basic Header Jargon, DO NOT change it! Leave it exactly as it was.
 4. Only heavily rewrite the professional summary strings and work experience bullet point strings.
-5. NEVER add more indices or paragraphs to the array than exactly ${paragraphs.length}.
-6. OUTPUT NOTHING ELSE. Do NOT wrap your output in markdown \`\`\`json blocks. Return raw JSON text parsing compliant output starting with '[' and ending with ']'.
+5. UK English & Grammar: Thoroughly double-check the entire document for spelling and grammar mistakes, and enforce strict UK English spelling and formatting throughout all generated strings.
+6. Clean Text Only: NEVER include structural labels like (A), (R), (T), or [Action: ...] in the generated strings. Output ONLY the pure sentences. Also, do not use HTML entities (e.g. write '&' or 'and' instead of '&amp;').
+7. NEVER add more indices or paragraphs to the array than exactly ${paragraphs.length}.
+8. OUTPUT NOTHING ELSE. Do NOT wrap your output in markdown \`\`\`json blocks. Return raw JSON text parsing compliant output starting with '[' and ending with ']'.
 
 --- Job Description ---
 ${jobDesc}
