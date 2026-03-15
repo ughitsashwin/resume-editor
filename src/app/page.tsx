@@ -14,7 +14,8 @@ import {
   Trophy,
   PenTool,
   Download,
-  Sparkles
+  Sparkles,
+  TrendingUp
 } from "lucide-react";
 import ReactMarkdown from "react-markdown";
 
@@ -30,6 +31,7 @@ export default function Home() {
   const [error, setError] = useState("");
   const [analysis, setAnalysis] = useState("");
   const [rewrittenResume, setRewrittenResume] = useState("");
+  const [postRewriteScore, setPostRewriteScore] = useState("");
 
   const [fileExtracting, setFileExtracting] = useState(false);
   const [downloadingDoc, setDownloadingDoc] = useState(false);
@@ -175,6 +177,7 @@ export default function Home() {
     setError("");
     setAnalysis("");
     setRewrittenResume("");
+    setPostRewriteScore("");
 
     try {
       const res = await fetch("/api/analyze", {
@@ -194,6 +197,7 @@ export default function Home() {
 
       setAnalysis(data.analysis);
       setRewrittenResume(data.rewrittenResume);
+      setPostRewriteScore(data.postRewriteScore);
     } catch (err: any) {
       setError(err.message);
     } finally {
@@ -420,7 +424,25 @@ export default function Home() {
                   <div className="prose prose-invert prose-violet max-w-none text-sm leading-relaxed bg-slate-900/50 p-6 rounded-xl border border-white/5 whitespace-pre-wrap font-mono">
                     <ReactMarkdown>{rewrittenResume}</ReactMarkdown>
                   </div>
-                  <div className="mt-6 flex flex-wrap justify-end gap-3">
+                  
+                  {postRewriteScore && (
+                    <motion.div 
+                      initial={{ opacity: 0, scale: 0.95 }}
+                      animate={{ opacity: 1, scale: 1 }}
+                      transition={{ delay: 0.3 }}
+                      className="mt-6 bg-gradient-to-r from-emerald-900/40 to-teal-900/40 border border-emerald-500/20 p-5 rounded-xl flex items-center gap-4"
+                    >
+                      <div className="w-12 h-12 shrink-0 rounded-full bg-emerald-500/20 flex items-center justify-center">
+                        <TrendingUp className="w-6 h-6 text-emerald-400" />
+                      </div>
+                      <div>
+                        <h4 className="text-emerald-400 font-bold mb-1 text-sm tracking-wide uppercase">New Match Score After Optimization</h4>
+                        <p className="text-slate-200 text-sm font-medium">{postRewriteScore}</p>
+                      </div>
+                    </motion.div>
+                  )}
+
+                  <div className="mt-8 flex flex-wrap justify-end gap-3">
                     <button 
                       onClick={() => navigator.clipboard.writeText(rewrittenResume)}
                       className="px-4 py-2 bg-white/5 hover:bg-white/10 rounded-lg text-sm text-slate-300 transition-colors border border-white/10 flex items-center gap-2"

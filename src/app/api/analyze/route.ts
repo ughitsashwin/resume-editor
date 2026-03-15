@@ -70,9 +70,39 @@ ${jobDescription}`;
     const data2 = await res2.json();
     const rewrittenResume = data2.candidates?.[0]?.content?.parts?.[0]?.text || "No resume rewrite returned.";
 
+    const prompt3 = `Act as a Senior Recruiter. Analyze my NEWLY OPTIMIZED resume against this exact job description for the ${role} position at ${company}. 
+
+Give me ONLY the new final Match Score percentage (e.g., "95%") and a single very short sentence about why it improved, without any extra conversation or markdown formatting.
+
+Optimized Resume:
+${rewrittenResume}
+
+Job Description:
+${jobDescription}`;
+
+    const res3 = await fetch(url, {
+      method: "POST",
+      headers,
+      body: JSON.stringify({
+        contents: [{ parts: [{ text: prompt3 }] }],
+        generationConfig: {
+          temperature: 0.1 // very factual for scoring
+        }
+      })
+    });
+
+    if (!res3.ok) {
+        const err = await res3.text();
+        return NextResponse.json({ error: `Gemini API Error (Prompt 3): ${err}` }, { status: res3.status });
+    }
+
+    const data3 = await res3.json();
+    const postRewriteScore = data3.candidates?.[0]?.content?.parts?.[0]?.text || "Score not available";
+
     return NextResponse.json({
       analysis: analysisResult,
-      rewrittenResume: rewrittenResume
+      rewrittenResume: rewrittenResume,
+      postRewriteScore: postRewriteScore
     });
 
   } catch (error: any) {
